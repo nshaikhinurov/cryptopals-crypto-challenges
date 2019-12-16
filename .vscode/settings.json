@@ -1,0 +1,29 @@
+{
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": false
+	},
+	// Включаем форматирование Prettier при сохранении файла (VSCode extension Prettier)
+	"editor.formatOnSave": true,
+
+	// Включаем живой линтинг ESLint (VSCode extension ESLint)
+	"eslint.enable": true,
+	"eslint.autoFixOnSave": true,
+
+	// Отключаем ts linter, чтобы не повторялись предупреждения от ESLint (встроено в VSCode?)
+	"typescript.validate.enable": false,
+	"javascript.validate.enable": false,
+	"javascript.updateImportsOnFileMove.enabled": "prompt",
+
+	// Включаем живой линтинг StyleLint (VSCode extension StyleLint)
+	"stylelint.enable": true,
+
+	// show snippets on top of the suggestion list
+	"editor.snippetSuggestions": "top",
+
+	"editor.quickSuggestions": {
+		"other": true,
+		"comments": false,
+		"strings": false
+	},
+	"editor.quickSuggestionsDelay": 10
+}
