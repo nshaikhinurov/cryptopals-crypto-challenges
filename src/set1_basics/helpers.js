@@ -1,4 +1,5 @@
 import * as R from 'ramda'
+import { getExpectedFrequencyTable, getFrequencyTable } from './frequencyTable'
 
 export const xor = (buf1, buf2) => {
 	const xor = Buffer.alloc(buf1.length)
@@ -10,16 +11,35 @@ export const xor = (buf1, buf2) => {
 	return xor
 }
 
-export const scoreEnglishText = text => {
-	const mapIndexed = R.addIndex(R.map)
-	const table = R.pipe(
-		R.reverse,
-		mapIndexed((v, i) => ({ [v]: i })),
-		R.mergeAll
-	)([...'etaoinshrdlcumwfgypbvkjxqz'])
+export const chiSquared = (observedTable, expectedTable) => {
+	return R.pipe(
+		R.toPairs,
+		R.reduce(
+			(sum, [key, value]) =>
+				sum +
+				(expectedTable[key]
+					? Math.pow(expectedTable[key] - value, 2) / expectedTable[key]
+					: 0),
+			0
+		)
+	)(observedTable)
+}
 
-	R.pipe(
-		R.map(v => table[v] || 0),
-		R.sum
-	)([...text])
+const expectedTable = getExpectedFrequencyTable()
+export const scoreEnglishText = text => {
+	console.log('Scoring: text', text)
+	const observedTable = getFrequencyTable(text)
+	console.log('TCL: observedTable(text)', observedTable)
+	return chiSquared(observedTable, expectedTable)
+	// const mapIndexed = R.addIndex(R.map)
+	// const table = R.pipe(
+	// 	R.reverse,
+	// 	mapIndexed((v, i) => ({ [v]: i })),
+	// 	R.mergeAll
+	// )([...'etaoinshrdlcumwfgypbvkjxqz'])
+
+	// R.pipe(
+	// 	R.map(v => table[v] || 0),
+	// 	R.sum
+	// )([...text])
 }

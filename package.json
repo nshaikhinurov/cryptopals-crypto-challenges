@@ -47,7 +47,7 @@
 	},
 	"dependencies": {
 		"expect": "^24.9.0",
-		"ramda": "0.24.0",
+		"ramda": "^0.26.1",
 		"ramda-adjunct": "^2.22.1"
 	}
 }
