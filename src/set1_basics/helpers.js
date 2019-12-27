@@ -11,36 +11,24 @@ export const xor = (buf1, buf2) => {
 	return xor
 }
 
-export const chiSquared = (observedTable, expectedTable) => {
-	return R.pipe(
-		R.toPairs,
-		R.reduce(
-			(sum, [key, value]) =>
-				sum +
-				(expectedTable[key]
-					? Math.pow(expectedTable[key] - value, 2) / expectedTable[key]
-					: 0),
-			0
-		)
-	)(observedTable)
-}
-
 const expectedTable = getExpectedFrequencyTable()
 export const scoreEnglishText = text => {
-	// console.log('Scoring: text', text)
-	// const observedTable = getFrequencyTable(text)
-	// console.log('TCL: observedTable(text)', observedTable)
-	// return chiSquared(observedTable, expectedTable)
 	return R.reduce((score, char) => score + expectedTable[char] || 0, 0, text)
-	// const mapIndexed = R.addIndex(R.map)
-	// const table = R.pipe(
-	// 	R.reverse,
-	// 	mapIndexed((v, i) => ({ [v]: i })),
-	// 	R.mergeAll
-	// )([...'etaoinshrdlcumwfgypbvkjxqz'])
+}
 
-	// R.pipe(
-	// 	R.map(v => table[v] || 0),
-	// 	R.sum
-	// )([...text])
+export const decipherSingleByteXor = encryptedBuffer => {
+	const decipheredText = R.pipe(
+		R.map(key => {
+			const text = xor(
+				encryptedBuffer,
+				Buffer.alloc(encryptedBuffer.length, key)
+			).toString('utf8')
+			const score = scoreEnglishText(text)
+			return [key, text, score]
+		}),
+		R.sortBy(([key, text, score]) => -score),
+		R.head,
+		([key, decipheredText, score]) => decipheredText
+	)(R.range(0, 256))
+	return decipheredText
 }
