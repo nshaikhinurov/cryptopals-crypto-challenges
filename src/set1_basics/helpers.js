@@ -27,10 +27,11 @@ export const chiSquared = (observedTable, expectedTable) => {
 
 const expectedTable = getExpectedFrequencyTable()
 export const scoreEnglishText = text => {
-	console.log('Scoring: text', text)
-	const observedTable = getFrequencyTable(text)
-	console.log('TCL: observedTable(text)', observedTable)
-	return chiSquared(observedTable, expectedTable)
+	// console.log('Scoring: text', text)
+	// const observedTable = getFrequencyTable(text)
+	// console.log('TCL: observedTable(text)', observedTable)
+	// return chiSquared(observedTable, expectedTable)
+	return R.reduce((score, char) => score + expectedTable[char] || 0, 0, text)
 	// const mapIndexed = R.addIndex(R.map)
 	// const table = R.pipe(
 	// 	R.reverse,
