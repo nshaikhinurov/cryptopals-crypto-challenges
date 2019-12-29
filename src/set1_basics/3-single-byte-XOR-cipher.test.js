@@ -8,8 +8,9 @@ describe('Single-byte XOR cipher', () => {
 			'hex'
 		)
 
-		expect(decipherSingleByteXor(buf)).toEqual(
-			"Cooking MC's like a pound of bacon"
-		)
+		expect(decipherSingleByteXor(buf)).toMatchObject({
+			keyChar: 'X',
+			plainText: "Cooking MC's like a pound of bacon",
+		})
 	})
 })

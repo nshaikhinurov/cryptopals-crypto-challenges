@@ -5,6 +5,10 @@ import * as R from 'ramda'
 import { getExpectedFrequencyTable } from './frequencyTable'
 
 export const xor = (buf1, buf2) => {
+	if (buf1.length !== buf2.length) {
+		throw new Error('`xor` must be applied to buffers of the same length.')
+	}
+
 	const xor = Buffer.alloc(buf1.length)
 
 	for (let i = 0; i < buf1.length; ++i) {
@@ -12,18 +16,6 @@ export const xor = (buf1, buf2) => {
 	}
 
 	return xor
-}
-
-const toBinaryString = buffer => {
-	return R.reduce(
-		(binaryString, byte) => binaryString + byte.toString(2).padStart(8, '0'),
-		'',
-		buffer
-	)
-}
-
-export const hammingDistance = (buf1, buf2) => {
-	return R.sum(toBinaryString(xor(buf1, buf2)))
 }
 
 export const repeatingXor = (keyBuf, plainTextBuf) => {
@@ -36,28 +28,60 @@ export const repeatingXor = (keyBuf, plainTextBuf) => {
 	return xor
 }
 
+const toBinaryString = buffer =>
+	R.reduce(
+		(binaryString, byte) => binaryString + byte.toString(2).padStart(8, '0'),
+		'',
+		buffer
+	)
+
+export const hammingDistance = (buf1, buf2) => {
+	return R.pipe(
+		xor,
+		toBinaryString,
+		R.sum
+	)(buf1, buf2)
+}
+
 const expectedTable = getExpectedFrequencyTable()
 export const scoreEnglishText = text => {
 	return R.reduce((score, char) => score + (expectedTable[char] || 0), 0, text)
 }
 
-export const decipherSingleByteXor = encryptedBuffer => {
-	const decipheredText = R.pipe(
-		R.map(key => [
-			key,
-			xor(encryptedBuffer, Buffer.alloc(encryptedBuffer.length, key)).toString(
-				'utf8'
-			),
-		]),
-		R.reject(([key, text]) => R.contains('�', text)),
-		R.map(([key, text]) => [key, text, scoreEnglishText(text)]),
-		R.sortBy(([key, text, score]) => -score),
-		// R.tap(console.log),
-		R.take(1),
-		// R.tap(console.log),
-		R.map(([key, decipheredText, score]) => decipheredText),
-		R.head
-	)(R.range(0, 256))
+export const decipherSingleByteXor = encryptedBuffer =>
+	R.pipe(
+		// Match each possible key with its corresponding decrypted plain text
+		R.map(key => {
+			return {
+				key,
+				plainText: xor(
+					encryptedBuffer,
+					Buffer.alloc(encryptedBuffer.length, key)
+				).toString('utf8'),
+			}
+		}),
 
-	return decipheredText
-}
+		// Get rid of unprintable decryptions
+		R.reject(({ plainText }) => R.contains('�', plainText)),
+
+		// Score rest decryptions
+		R.map(({ key, plainText }) => ({
+			key,
+			plainText,
+			score: scoreEnglishText(plainText),
+		})),
+
+		R.sortBy(({ score }) => -score),
+		R.head,
+		R.defaultTo({
+			key: null,
+			plainText: null,
+		}),
+		({ key, plainText }) => ({
+			key,
+			keyChar: String.fromCharCode(key),
+			plainText,
+		})
+	)(R.range(0, 255))
+
+export const average = R.converge(R.divide, [R.sum, R.length])

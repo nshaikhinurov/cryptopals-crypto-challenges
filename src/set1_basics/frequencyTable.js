@@ -3,10 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import * as R from 'ramda'
 
-// 			R.toPairs,
-// 			R.sortBy(([key, frequency]) => frequency),
-// 			R.reverse
-
 const emptyTable = {
 	A: 0,
 	B: 0,
@@ -71,14 +67,7 @@ export const getFrequencyTable = text => {
 			},
 			[totals, 0]
 		),
-		// R.pickBy((v, k) => R.test(/[a-zA-Z0-9]/, k)),
-		// R.pickBy((v, k) => (alphabet ? R.includes(k, alphabet) : true)),
 		([filteredTotals, charactersCount]) => {
-			// console.log(filteredTotals, charactersCount)
-			// const charactersCount = R.pipe(
-			// 	R.values,
-			// 	R.sum
-			// )(filteredTotals)
 			return R.map(value => value / charactersCount, filteredTotals)
 		}
 	)(text)
@@ -88,7 +77,6 @@ const text = fs.readFileSync(
 	path.resolve(__dirname, '../', 'text_sample.txt'),
 	'utf8'
 )
-// .toLowerCase()
 
 export const getExpectedFrequencyTable = () => {
 	let table = null

@@ -17,17 +17,19 @@ describe('Detect single-character XOR', () => {
 				)
 			)
 
-		const decipheredText = R.pipe(
+		const decryption = R.pipe(
 			R.map(string => {
 				const buf = Buffer.from(string, 'hex')
 				return decipherSingleByteXor(buf)
 			}),
-			R.filter(Boolean),
-			R.reject(R.contains('�')),
-			R.sortBy(scoreEnglishText),
+			R.filter(({ key }) => Boolean(key)),
+			R.sortBy(({ plainText }) => scoreEnglishText(plainText)),
 			R.last
 		)(strings)
 
-		expect(decipheredText).toEqual('Now that the party is jumping\n')
+		expect(decryption).toMatchObject({
+			keyChar: '5',
+			plainText: 'Now that the party is jumping\n',
+		})
 	})
 })
