@@ -92,7 +92,7 @@ module.exports = {
 		'linebreak-style': 'off',
 
 		// Разрешаем использовать только явные методы console
-		'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+		'no-console': ['error', { allow: ['warn', 'error', 'info', 'log'] }],
 
 		// Разрешаем использовать функции до объявления потому что все равно hoisting
 		'no-use-before-define': ['error', { functions: false, classes: true }],

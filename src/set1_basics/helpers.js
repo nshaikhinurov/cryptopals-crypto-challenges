@@ -14,10 +14,16 @@ export const xor = (buf1, buf2) => {
 	return xor
 }
 
+const toBinaryString = buffer => {
+	return R.reduce(
+		(binaryString, byte) => binaryString + byte.toString(2).padStart(8, '0'),
+		'',
+		buffer
+	)
+}
+
 export const hammingDistance = (buf1, buf2) => {
-	const string = xor(buf1, buf2).toString('binary')
-	console.log('TCL: hammingDistance -> string', string)
-	return R.sum(xor(buf1, buf2))
+	return R.sum(toBinaryString(xor(buf1, buf2)))
 }
 
 export const repeatingXor = (keyBuf, plainTextBuf) => {

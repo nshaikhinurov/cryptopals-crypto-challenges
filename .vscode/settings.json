@@ -1,6 +1,7 @@
 {
 	"editor.codeActionsOnSave": {
-		"source.organizeImports": false
+		"source.organizeImports": false,
+		"source.fixAll.eslint": true
 	},
 	// Включаем форматирование Prettier при сохранении файла (VSCode extension Prettier)
 	"editor.formatOnSave": true,
