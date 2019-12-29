@@ -12,7 +12,7 @@ module.exports = {
 	singleQuote: true,
 
 	// Print trailing commas wherever possible when multi-line
-	trailingComma: 'es5',
+	trailingComma: 'all',
 
 	// Print semicolons at the ends of statements
 	semi: false,

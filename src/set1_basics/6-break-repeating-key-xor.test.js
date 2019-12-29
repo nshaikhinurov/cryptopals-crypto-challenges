@@ -1,8 +1,13 @@
+/* eslint-disable max-lines-per-function */
 // https://cryptopals.com/sets/1/challenges/3
 import fetch from 'node-fetch'
 import * as R from 'ramda'
 import util from 'util'
-import { hammingDistance, decipherSingleByteXor, average } from './helpers'
+import {
+	decipherSingleByteXor,
+	repeatingXor,
+	scoreEnglishText,
+} from './helpers'
 
 util.inspect.defaultOptions.maxArrayLength = 25
 util.inspect.defaultOptions.depth = 10
@@ -11,58 +16,127 @@ util.inspect.defaultOptions.compact = false
 describe('Break repeating-key XOR', () => {
 	test('should decrypt repeating-key XOR', async () => {
 		const encryptedBuffer = await fetch(
-			'https://cryptopals.com/static/challenge-data/6.txt'
+			'https://cryptopals.com/static/challenge-data/6.txt',
 		)
 			.then(res => res.text())
 			.then(base64 => Buffer.from(base64, 'base64'))
-		console.log('TCL: encryptedBuffer', encryptedBuffer.length)
 
-		R.pipe(
-			R.map(keySize => {
-				const normalizedDistance = R.pipe(
-					R.splitEvery(keySize),
-					R.take(4),
-					R.aperture(2),
-					R.map(R.apply(hammingDistance)),
-					average,
-					R.divide(R.__, keySize)
-				)(encryptedBuffer)
+		const decryption = R.pipe(
+			R.map(keySize =>
+				R.pipe(
+					// split to keySize length chunks
+					R.splitEvery(R.__, encryptedBuffer),
 
-				// const firstBunchOfBytes = Uint8Array.prototype.slice.call(
-				// 	encryptedBuffer,
-				// 	0,
-				// 	keySize
-				// )
-				// const secondBunchOfBytes = Uint8Array.prototype.slice.call(
-				// 	encryptedBuffer,
-				// 	keySize,
-				// 	2 * keySize
-				// )
-				// const normalizedDistance =
-				// 	hammingDistance(firstBunchOfBytes, secondBunchOfBytes) / keySize
+					// get single byte encrypted Buffers using transposition
+					R.transpose,
+					R.map(Buffer.from),
 
-				return [keySize, normalizedDistance]
-			}),
-			R.sortBy(([keySize, distance]) => distance),
-			R.take(7),
-			R.tap(console.log)
-			// R.map(([keySize]) => {
-			// 	const chunks = R.splitEvery(keySize, encryptedBuffer)
-			// 	// console.log('TCL: chunks', keySize, chunks)
-			// 	return [keySize, chunks]
-			// }),
-			// // R.tap(console.log),
-			// R.map(([keySize, chunks]) => [keySize, R.transpose(chunks)]),
-			// R.map(([keySize, tranposedArrays]) => [
-			// 	keySize,
-			// 	R.map(Buffer.from)(tranposedArrays),
-			// ]),
-			// R.map(([keySize, singleByteXorEncryptions]) => [
-			// 	keySize,
-			// 	R.map(decipherSingleByteXor, singleByteXorEncryptions),
-			// ]),
+					// decrypt them
+					R.map(decipherSingleByteXor),
 
-			// R.tap(console.log)
+					// extract the key Buffers
+					R.pluck('key'),
+					Buffer.from,
+
+					// decrypt the whole message
+					keyBuffer => {
+						return {
+							keyString: keyBuffer.toString('utf8'),
+							plainText: repeatingXor(keyBuffer, encryptedBuffer).toString(
+								'utf8',
+							),
+						}
+					},
+				)(keySize),
+			),
+
+			// get the most "english" decryption
+			R.sortBy(({ plainText }) => -scoreEnglishText(plainText)),
+			R.head,
 		)(R.range(2, 40))
+
+		expect(decryption).toMatchObject({
+			keyString: 'Terminator X: Bring the noise',
+			plainText:
+				"I'm back and I'm ringin' the bell \n" +
+				"A rockin' on the mike while the fly girls yell \n" +
+				'In ecstasy in the back of me \n' +
+				"Well that's my DJ Deshay cuttin' all them Z's \n" +
+				"Hittin' hard and the girlies goin' crazy \n" +
+				"Vanilla's on the mike, man I'm not lazy. \n" +
+				'\n' +
+				"I'm lettin' my drug kick in \n" +
+				'It controls my mouth and I begin \n' +
+				'To just let it flow, let my concepts go \n' +
+				"My posse's to the side yellin', Go Vanilla Go! \n" +
+				'\n' +
+				"Smooth 'cause that's the way I will be \n" +
+				"And if you don't give a damn, then \n" +
+				"Why you starin' at me \n" +
+				"So get off 'cause I control the stage \n" +
+				"There's no dissin' allowed \n" +
+				"I'm in my own phase \n" +
+				'The girlies sa y they love me and that is ok \n' +
+				"And I can dance better than any kid n' play \n" +
+				'\n' +
+				"Stage 2 -- Yea the one ya' wanna listen to \n" +
+				"It's off my head so let the beat play through \n" +
+				'So I can funk it up and make it sound good \n' +
+				'1-2-3 Yo -- Knock on some wood \n' +
+				'For good luck, I like my rhymes atrocious \n' +
+				'Supercalafragilisticexpialidocious \n' +
+				"I'm an effect and that you can bet \n" +
+				'I can take a fly girl and make her wet. \n' +
+				'\n' +
+				"I'm like Samson -- Samson to Delilah \n" +
+				"There's no denyin', You can try to hang \n" +
+				"But you'll keep tryin' to get my style \n" +
+				'Over and over, practice makes perfect \n' +
+				"But not if you're a loafer. \n" +
+				'\n' +
+				"You'll get nowhere, no place, no time, no girls \n" +
+				'Soon -- Oh my God, homebody, you probably eat \n' +
+				'Spaghetti with a spoon! Come on and say it! \n' +
+				'\n' +
+				"VIP. Vanilla Ice yep, yep, I'm comin' hard like a rhino \n" +
+				'Intoxicating so you stagger like a wino \n' +
+				"So punks stop trying and girl stop cryin' \n" +
+				"Vanilla Ice is sellin' and you people are buyin' \n" +
+				"'Cause why the freaks are jockin' like Crazy Glue \n" +
+				"Movin' and groovin' trying to sing along \n" +
+				"All through the ghetto groovin' this here song \n" +
+				"Now you're amazed by the VIP posse. \n" +
+				'\n' +
+				"Steppin' so hard like a German Nazi \n" +
+				"Startled by the bases hittin' ground \n" +
+				"There's no trippin' on mine, I'm just gettin' down \n" +
+				"Sparkamatic, I'm hangin' tight like a fanatic \n" +
+				'You trapped me once and I thought that \n' +
+				'You might have it \n' +
+				'So step down and lend me your ear \n' +
+				"'89 in my time! You, '90 is my year. \n" +
+				'\n' +
+				"You're weakenin' fast, YO! and I can tell it \n" +
+				"Your body's gettin' hot, so, so I can smell it \n" +
+				"So don't be mad and don't be sad \n" +
+				"'Cause the lyrics belong to ICE, You can call me Dad \n" +
+				"You're pitchin' a fit, so step back and endure \n" +
+				'Let the witch doctor, Ice, do the dance to cure \n' +
+				"So come up close and don't be square \n" +
+				'You wanna battle me -- Anytime, anywhere \n' +
+				'\n' +
+				"You thought that I was weak, Boy, you're dead wrong \n" +
+				'So come on, everybody and sing this song \n' +
+				'\n' +
+				'Say -- Play that funky music Say, go white boy, go white boy go \n' +
+				'play that funky music Go white boy, go white boy, go \n' +
+				'Lay down and boogie and play that funky music till you die. \n' +
+				'\n' +
+				'Play that funky music Come on, Come on, let me hear \n' +
+				'Play that funky music white boy you say it, say it \n' +
+				'Play that funky music A little louder now \n' +
+				'Play that funky music, white boy Come on, Come on, Come on \n' +
+				'Play that funky music \n',
+		})
 	})
 })
