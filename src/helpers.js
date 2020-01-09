@@ -35,7 +35,10 @@ export const pkcsPad = R.curry((length, buffer) => {
 		)
 	}
 
-	const paddedBuffer = Buffer.alloc(length, buffer)
+	const paddedBuffer = Buffer.alloc(length)
+	for (let i = 0; i < length; i++) {
+		paddedBuffer[i] = buffer[i] || length - buffer.length
+	}
 
 	return paddedBuffer
 })
