@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+// https://cryptopals.com/sets/1/challenges/7
 
 import crypto from 'crypto'
 import fetch from 'node-fetch'

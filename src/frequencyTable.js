@@ -65,18 +65,15 @@ export const getFrequencyTable = text => {
 				}
 				return [totals, charactersCount + 1]
 			},
-			[totals, 0]
+			[totals, 0],
 		),
 		([filteredTotals, charactersCount]) => {
 			return R.map(value => value / charactersCount, filteredTotals)
-		}
+		},
 	)(text)
 }
 
-const text = fs.readFileSync(
-	path.resolve(__dirname, '../', 'text_sample.txt'),
-	'utf8'
-)
+const text = fs.readFileSync(path.resolve(__dirname, 'text_sample.txt'), 'utf8')
 
 export const getExpectedFrequencyTable = () => {
 	let table = null

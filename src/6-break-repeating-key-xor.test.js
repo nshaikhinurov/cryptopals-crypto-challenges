@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-// https://cryptopals.com/sets/1/challenges/3
+// https://cryptopals.com/sets/1/challenges/6
 import fetch from 'node-fetch'
 import * as R from 'ramda'
 import util from 'util'

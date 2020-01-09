@@ -28,18 +28,30 @@ export const repeatingXor = (keyBuf, plainTextBuf) => {
 	return xor
 }
 
+export const pkcsPad = R.curry((length, buffer) => {
+	if (buffer.length > length) {
+		throw new Error(
+			"Padding should expand the block, but target length was less than buffer's length",
+		)
+	}
+
+	const paddedBuffer = Buffer.alloc(length, buffer)
+
+	return paddedBuffer
+})
+
 const toBinaryString = buffer =>
 	R.reduce(
 		(binaryString, byte) => binaryString + byte.toString(2).padStart(8, '0'),
 		'',
-		buffer
+		buffer,
 	)
 
 export const hammingDistance = (buf1, buf2) => {
 	return R.pipe(
 		xor,
 		toBinaryString,
-		R.sum
+		R.sum,
 	)(buf1, buf2)
 }
 
@@ -56,7 +68,7 @@ export const decipherSingleByteXor = encryptedBuffer =>
 				key,
 				plainText: xor(
 					encryptedBuffer,
-					Buffer.alloc(encryptedBuffer.length, key)
+					Buffer.alloc(encryptedBuffer.length, key),
 				).toString('utf8'),
 			}
 		}),
@@ -81,7 +93,7 @@ export const decipherSingleByteXor = encryptedBuffer =>
 			key,
 			keyChar: String.fromCharCode(key),
 			plainText,
-		})
+		}),
 	)(R.range(0, 255))
 
 export const average = R.converge(R.divide, [R.sum, R.length])
