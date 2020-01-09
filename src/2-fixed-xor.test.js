@@ -8,7 +8,7 @@ describe('Fixed XOR', () => {
 		const buf2 = Buffer.from('686974207468652062756c6c277320657965', 'hex')
 		const expectedXor = Buffer.from(
 			'746865206b696420646f6e277420706c6179',
-			'hex'
+			'hex',
 		)
 
 		expect(xor(buf1, buf2)).toEqual(expectedXor)

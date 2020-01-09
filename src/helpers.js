@@ -28,6 +28,21 @@ export const repeatingXor = (keyBuf, plainTextBuf) => {
 	return xor
 }
 
+export const pkcsPad = R.curry((length, buffer) => {
+	if (buffer.length > length) {
+		throw new Error(
+			"Padding should expand the block, but target length was less than buffer's length",
+		)
+	}
+
+	const paddedBuffer = Buffer.alloc(length)
+	for (let i = 0; i < length; i++) {
+		paddedBuffer[i] = buffer[i] || length - buffer.length
+	}
+
+	return paddedBuffer
+})
+
 const toBinaryString = buffer =>
 	R.reduce(
 		(binaryString, byte) => binaryString + byte.toString(2).padStart(8, '0'),

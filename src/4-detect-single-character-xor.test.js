@@ -1,4 +1,4 @@
-// https://cryptopals.com/sets/1/challenges/3
+// https://cryptopals.com/sets/1/challenges/4
 import fetch from 'node-fetch'
 import * as R from 'ramda'
 import * as RA from 'ramda-adjunct'
@@ -7,14 +7,14 @@ import { decipherSingleByteXor, scoreEnglishText } from './helpers'
 describe('Detect single-character XOR', () => {
 	test('should find the encrypted string', async () => {
 		const strings = await fetch(
-			'https://cryptopals.com/static/challenge-data/4.txt'
+			'https://cryptopals.com/static/challenge-data/4.txt',
 		)
 			.then(res => res.text())
 			.then(
 				R.pipe(
 					R.split('\n'),
-					R.filter(RA.lengthEq(60))
-				)
+					R.filter(RA.lengthEq(60)),
+				),
 			)
 
 		const decryption = R.pipe(
@@ -24,7 +24,7 @@ describe('Detect single-character XOR', () => {
 			}),
 			R.filter(({ key }) => Boolean(key)),
 			R.sortBy(({ plainText }) => scoreEnglishText(plainText)),
-			R.last
+			R.last,
 		)(strings)
 
 		expect(decryption).toMatchObject({

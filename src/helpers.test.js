@@ -6,8 +6,8 @@ describe('hammingDistance', () => {
 		expect(
 			hammingDistance(
 				Buffer.from('this is a test', 'ascii'),
-				Buffer.from('wokka wokka!!!', 'ascii')
-			)
+				Buffer.from('wokka wokka!!!', 'ascii'),
+			),
 		).toEqual(37)
 	})
 })
