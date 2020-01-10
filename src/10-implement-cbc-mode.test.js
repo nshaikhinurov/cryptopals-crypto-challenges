@@ -1,31 +1,23 @@
 /* eslint-disable max-lines-per-function */
-// https://cryptopals.com/sets/1/challenges/7
+// https://cryptopals.com/sets/2/challenges/10
 
-import crypto from 'crypto'
 import fetch from 'node-fetch'
 import * as R from 'ramda'
+import { decryptInCbcMode } from './courseraChallenge-week2-programming-assignment'
 
-describe('AES in ECB mode', () => {
-	test('should decrypt AES in ECB mode with the given key', async () => {
-		const encryptedBuffer = await fetch(
-			'https://cryptopals.com/static/challenge-data/7.txt',
+describe('Implement CBC mode', () => {
+	test('should implement CBC mode by hand by taking the ECB function', async () => {
+		const key = Buffer.from('YELLOW SUBMARINE')
+		const iv = Buffer.alloc(16)
+
+		const encryption = await fetch(
+			'https://cryptopals.com/static/challenge-data/10.txt',
 		)
 			.then(res => res.text())
 			.then(R.replace('\n', ''))
 			.then(base64 => Buffer.from(base64, 'base64'))
 
-		const decipher = crypto.createDecipheriv(
-			'aes-128-ecb',
-			'YELLOW SUBMARINE',
-			null,
-		)
-
-		const plainText = Buffer.concat([
-			decipher.update(encryptedBuffer),
-			decipher.final(),
-		]).toString()
-
-		expect(plainText).toEqual(
+		return expect(decryptInCbcMode(key, iv, encryption).toString()).toEqual(
 			"I'm back and I'm ringin' the bell \n" +
 				"A rockin' on the mike while the fly girls yell \n" +
 				'In ecstasy in the back of me \n' +

@@ -1,12 +1,43 @@
 /* global BigInt */
 import * as R from 'ramda'
 import crypto from 'crypto'
-import { xor } from './helpers'
+import { xor, pkcsPad } from './helpers'
 
-const decryptInCbcMode = (key, ciphertextBuffer) => {
-	const iv = R.slice(0, 16)(ciphertextBuffer)
-	const cipherBlocks = R.pipe(
+const encryptInCbcMode = (key, iv, plaintextBuffer) => {
+	const plaintextBlocks = R.pipe(
 		R.slice(16, Infinity),
+		R.splitEvery(16),
+		R.map(Buffer.from),
+		buffers => R.adjust(buffers.length - 1, pkcsPad(16))(buffers),
+	)(plaintextBuffer)
+
+	const { encryption } = R.reduce(
+		({ encryption, toXorWith }, plaintextBlock) => {
+			const cipher = crypto.createCipheriv('AES-128-ECB', key, null)
+			cipher.setAutoPadding(false) // When data has been encrypted without standard block padding, calling decipher.setAutoPadding(false) will disable automatic padding to prevent decipher.final() from checking for and removing padding.
+
+			const nextEncryptedBlock = xor(
+				toXorWith,
+				Buffer.concat([cipher.update(plaintextBlock), cipher.final()]),
+			)
+
+			return {
+				encryption: Buffer.concat([encryption, nextEncryptedBlock]),
+				toXorWith: plaintextBlock,
+			}
+		},
+		{
+			encryption: Buffer.alloc(0),
+			toXorWith: iv,
+		},
+	)(plaintextBlocks)
+
+	return encryption
+}
+
+export const decryptInCbcMode = (key, iv, ciphertextBuffer) => {
+	const cipherBlocks = R.pipe(
+		// R.slice(16, Infinity),
 		R.splitEvery(16),
 		R.map(Buffer.from),
 	)(ciphertextBuffer)
@@ -91,18 +122,18 @@ const ctrEncryptions = [
 	'770b80259ec33beb2561358a9f2dc617e46218c0a53cbeca695ae45faa8952aa0e311bde9d4e01726d3184c34451',
 ]
 
-R.pipe(
-	R.map(hex => Buffer.from(hex, 'hex')),
-	R.splitEvery(2),
-	R.map(R.apply(decryptInCbcMode)),
-	R.map(buf => buf.toString('utf8')),
-	console.log,
-)(cbcEncryptions)
+// R.pipe(
+// 	R.map(hex => Buffer.from(hex, 'hex')),
+// 	R.splitEvery(2),
+// 	R.map(R.apply(decryptInCbcMode)),
+// 	R.map(buf => buf.toString('utf8')),
+// 	console.log,
+// )(cbcEncryptions)
 
-R.pipe(
-	R.map(hex => Buffer.from(hex, 'hex')),
-	R.splitEvery(2),
-	R.map(R.apply(decryptInCtrMode)),
-	R.map(buf => buf.toString('utf8')),
-	console.log,
-)(ctrEncryptions)
+// R.pipe(
+// 	R.map(hex => Buffer.from(hex, 'hex')),
+// 	R.splitEvery(2),
+// 	R.map(R.apply(decryptInCtrMode)),
+// 	R.map(buf => buf.toString('utf8')),
+// 	console.log,
+// )(ctrEncryptions)
