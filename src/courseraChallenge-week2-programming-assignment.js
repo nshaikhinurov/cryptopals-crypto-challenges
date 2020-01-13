@@ -3,9 +3,8 @@ import * as R from 'ramda'
 import crypto from 'crypto'
 import { xor, pkcsPad } from './helpers'
 
-const encryptInCbcMode = (key, iv, plaintextBuffer) => {
+export const encryptInCbcMode = (key, iv, plaintextBuffer) => {
 	const plaintextBlocks = R.pipe(
-		R.slice(16, Infinity),
 		R.splitEvery(16),
 		R.map(Buffer.from),
 		buffers => R.adjust(buffers.length - 1, pkcsPad(16))(buffers),
@@ -16,14 +15,16 @@ const encryptInCbcMode = (key, iv, plaintextBuffer) => {
 			const cipher = crypto.createCipheriv('AES-128-ECB', key, null)
 			cipher.setAutoPadding(false) // When data has been encrypted without standard block padding, calling decipher.setAutoPadding(false) will disable automatic padding to prevent decipher.final() from checking for and removing padding.
 
-			const nextEncryptedBlock = xor(
-				toXorWith,
-				Buffer.concat([cipher.update(plaintextBlock), cipher.final()]),
-			)
+			const xored = xor(toXorWith, plaintextBlock)
+
+			const nextEncryptedBlock = Buffer.concat([
+				cipher.update(xored),
+				cipher.final(),
+			])
 
 			return {
 				encryption: Buffer.concat([encryption, nextEncryptedBlock]),
-				toXorWith: plaintextBlock,
+				toXorWith: nextEncryptedBlock,
 			}
 		},
 		{
@@ -37,7 +38,6 @@ const encryptInCbcMode = (key, iv, plaintextBuffer) => {
 
 export const decryptInCbcMode = (key, iv, ciphertextBuffer) => {
 	const cipherBlocks = R.pipe(
-		// R.slice(16, Infinity),
 		R.splitEvery(16),
 		R.map(Buffer.from),
 	)(ciphertextBuffer)

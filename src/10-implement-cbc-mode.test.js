@@ -3,7 +3,10 @@
 
 import fetch from 'node-fetch'
 import * as R from 'ramda'
-import { decryptInCbcMode } from './courseraChallenge-week2-programming-assignment'
+import {
+	decryptInCbcMode,
+	encryptInCbcMode,
+} from './courseraChallenge-week2-programming-assignment'
 
 describe('Implement CBC mode', () => {
 	test('should implement CBC mode by hand by taking the ECB function', async () => {
@@ -17,7 +20,8 @@ describe('Implement CBC mode', () => {
 			.then(R.replace('\n', ''))
 			.then(base64 => Buffer.from(base64, 'base64'))
 
-		return expect(decryptInCbcMode(key, iv, encryption).toString()).toEqual(
+		const plainText = decryptInCbcMode(key, iv, encryption).toString('utf8')
+		expect(plainText).toEqual(
 			"I'm back and I'm ringin' the bell \n" +
 				"A rockin' on the mike while the fly girls yell \n" +
 				'In ecstasy in the back of me \n' +
@@ -98,5 +102,9 @@ describe('Implement CBC mode', () => {
 				'Play that funky music, white boy Come on, Come on, Come on \n' +
 				'Play that funky music \n',
 		)
+
+		expect(
+			encryptInCbcMode(key, iv, Buffer.from(plainText, 'utf8')).toString('hex'),
+		).toEqual(encryption.toString('hex'))
 	})
 })
