@@ -7,9 +7,15 @@ const hashByChunks = buffer => {
 	const chunks = R.pipe(
 		R.splitEvery(1024),
 		R.map(Buffer.from),
+		// R.tap(console.log),
 	)(buffer)
 
-	return R.reduceRight((nextChunkHash, chunk) => {
+	return R.reduceRight((chunk, nextChunkHash) => {
+		// console.log('TCL: nextChunkHash, chunk', nextChunkHash, chunk)
+		// console.log(
+		// 	'TCL: Buffer.concat([chunk, nextChunkHash])',
+		// 	Buffer.concat([chunk, nextChunkHash]),
+		// )
 		const hash = crypto.createHash('sha256')
 		hash.update(Buffer.concat([chunk, nextChunkHash]))
 		return hash.digest()
@@ -21,4 +27,4 @@ R.pipe(
 	hashByChunks,
 	b => b.toString('hex'),
 	console.log,
-)(path.resolve(__dirname, 'files/6.2.birthday.mp4_download'))
+)(path.resolve(__dirname, 'files/6.1.intro.mp4_download'))
